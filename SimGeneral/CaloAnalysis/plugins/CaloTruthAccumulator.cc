@@ -1,4 +1,4 @@
-#define DEBUG true 
+#define DEBUG false 
 #if DEBUG
 // boost optional (used by boost graph) results in some false positives with -Wmaybe-uninitialized
 #pragma GCC diagnostic push
