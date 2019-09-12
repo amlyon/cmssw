@@ -20,7 +20,7 @@ namespace edm
   protected :
 
     // data members
-    double fEnMin,fEnMax,fRMin,fRMax,fZMin,fZMax,fDelta,fPhiMin,fPhiMax;
+    double fPtMax,fPtMin,fRMin,fRMax,fZMin,fZMax,fDelta,fPhiMin,fPhiMax;
     int fNParticles;
     bool fPointing = false;
     bool fOverlapping = false;

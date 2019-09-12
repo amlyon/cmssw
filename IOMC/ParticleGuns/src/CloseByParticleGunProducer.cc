@@ -29,8 +29,8 @@ CloseByParticleGunProducer::CloseByParticleGunProducer(const ParameterSet& pset)
   ParameterSet pgun_params =
     pset.getParameter<ParameterSet>("PGunParameters") ;
 
-  fEnMax = pgun_params.getParameter<double>("EnMax");
-  fEnMin = pgun_params.getParameter<double>("EnMin");
+  //fEnMax = pgun_params.getParameter<double>("EnMax");
+  //fEnMin = pgun_params.getParameter<double>("EnMin");
   fPtMin = pgun_params.getParameter<double>("MinPt");
   fPtMax = pgun_params.getParameter<double>("MaxPt");
   fRMax = pgun_params.getParameter<double>("RMax");
@@ -97,16 +97,23 @@ void CloseByParticleGunProducer::produce(Event &e, const EventSetup& es)
      //generation flat in Energy:
      //double fEn = CLHEP::RandFlat::shoot(engine,fEnMin,fEnMax);
      //generation flat in Et:
-     double fEn = CLHEP::RandFlat::shoot(engine,fPtMin,fPtMax);
+     double pt = CLHEP::RandFlat::shoot(engine,fPtMin,fPtMax);
      int PartID = particles[ip] ;
      const HepPDT::ParticleData *PData = fPDGTable->particle(HepPDT::ParticleID(abs(PartID))) ;
      double mass   = PData->mass().value() ;
-     double mom    = sqrt(fEn*fEn-mass*mass);
-     double px     = 0.;
-     double py     = 0.;
-     double pz     = mom;
-     double energy = fEn;
-
+     //double mom    = sqrt(fEn*fEn-mass*mass);
+     //double px     = 0.;
+     //double py     = 0.;
+     //double pz     = mom;
+     //double energy = fEn;
+     double theta  = acos(fZ/sqrt(fR*fR + fZ*fZ)) ;
+     double mom    = pt/sin(theta) ;
+     double px     = pt*cos(phi) ;
+     double py     = pt*sin(phi) ;
+     double pz     = mom*cos(theta) ;
+     double energy2= mom*mom + mass*mass ;
+     double energy = sqrt(energy2) ; 
+ 
      // Compute Vertex Position
      double x=fR*cos(phi);
      double y=fR*sin(phi);
