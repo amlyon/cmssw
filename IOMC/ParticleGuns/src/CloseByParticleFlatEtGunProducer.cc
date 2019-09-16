@@ -1,6 +1,6 @@
 #include <ostream>
 
-#include "IOMC/ParticleGuns/interface/CloseByParticleGunProducer.h"
+#include "IOMC/ParticleGuns/interface/CloseByParticleFlatEtGunProducer.h"
 
 #include "SimDataFormats/GeneratorProducts/interface/HepMCProduct.h"
 #include "SimDataFormats/GeneratorProducts/interface/GenEventInfoProduct.h"
@@ -21,7 +21,7 @@
 using namespace edm;
 using namespace std;
 
-CloseByParticleGunProducer::CloseByParticleGunProducer(const ParameterSet& pset) :
+CloseByParticleFlatEtGunProducer::CloseByParticleFlatEtGunProducer(const ParameterSet& pset) :
    BaseFlatGunProducer(pset)
 {
 
@@ -51,19 +51,19 @@ CloseByParticleGunProducer::CloseByParticleGunProducer(const ParameterSet& pset)
 
 }
 
-CloseByParticleGunProducer::~CloseByParticleGunProducer()
+CloseByParticleFlatEtGunProducer::~CloseByParticleFlatEtGunProducer()
 {
    // no need to cleanup GenEvent memory - done in HepMCProduct
 }
 
-void CloseByParticleGunProducer::produce(Event &e, const EventSetup& es)
+void CloseByParticleFlatEtGunProducer::produce(Event &e, const EventSetup& es)
 {
    edm::Service<edm::RandomNumberGenerator> rng;
    CLHEP::HepRandomEngine* engine = &rng->getEngine(e.streamID());
 
    if ( fVerbosity > 0 )
    {
-      LogDebug("CloseByParticleGunProducer") << " CloseByParticleGunProducer : Begin New Event Generation" << endl ;
+      LogDebug("CloseByParticleFlatEtGunProducer") << " CloseByParticleFlatEtGunProducer : Begin New Event Generation" << endl ;
    }
    fEvt = new HepMC::GenEvent() ;
 
@@ -170,7 +170,7 @@ void CloseByParticleGunProducer::produce(Event &e, const EventSetup& es)
 
    if ( fVerbosity > 0 )
    {
-      LogDebug("CloseByParticleGunProducer") << " CloseByParticleGunProducer : Event Generation Done " << endl;
+      LogDebug("CloseByParticleFlatEtGunProducer") << " CloseByParticleFlatEtGunProducer : Event Generation Done " << endl;
    }
 
    particles.clear();

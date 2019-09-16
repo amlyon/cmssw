@@ -1,17 +1,17 @@
-#ifndef IOMC_ParticleGun_CloseByParticleGunProducer_H
-#define IOMC_ParticleGun_CloseByParticleGunProducer_H
+#ifndef IOMC_ParticleGun_CloseByParticleFlatEtGunProducer_H
+#define IOMC_ParticleGun_CloseByParticleFlatEtGunProducer_H
 
 #include "IOMC/ParticleGuns/interface/BaseFlatGunProducer.h"
 
 namespace edm
 {
 
-  class CloseByParticleGunProducer : public BaseFlatGunProducer
+  class CloseByParticleFlatEtGunProducer : public BaseFlatGunProducer
   {
 
   public:
-    CloseByParticleGunProducer(const ParameterSet &);
-    ~CloseByParticleGunProducer() override;
+    CloseByParticleFlatEtGunProducer(const ParameterSet &);
+    ~CloseByParticleFlatEtGunProducer() override;
 
   private:
 
