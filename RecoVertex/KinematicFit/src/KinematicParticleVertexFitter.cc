@@ -12,6 +12,19 @@
 #include "DataFormats/CLHEP/interface/Migration.h"
 #include "FWCore/MessageLogger/interface/MessageLogger.h"
 
+namespace {
+  // FIXME
+  // hard-coded tracker bounds
+  // workaround while waiting for Geometry service
+  static const float TrackerBoundsRadius = 112;
+  static const float TrackerBoundsHalfLength = 273.5;
+  bool insideTrackerBounds(const GlobalPoint& point) {
+    return ((point.transverse() < TrackerBoundsRadius)
+        && (abs(point.z()) < TrackerBoundsHalfLength));
+  }
+}
+
+
 KinematicParticleVertexFitter::KinematicParticleVertexFitter()
 {
   edm::ParameterSet pSet = defaultParameters();
@@ -65,6 +78,7 @@ RefCountedKinematicTree KinematicParticleVertexFitter::fit(const std::vector<Ref
  std::vector<FreeTrajectoryState> & freeStates = input.second;
 
  GlobalPoint linPoint = pointFinder->getLinearizationPoint(freeStates);
+ if( !insideTrackerBounds(linPoint) ) linPoint = GlobalPoint(0,0,0);
   
 // cout<<"Linearization point found"<<endl; 
  
@@ -83,6 +97,9 @@ RefCountedKinematicTree KinematicParticleVertexFitter::fit(const std::vector<Ref
      return ReferenceCountingPointer<KinematicTree>(new KinematicTree()); // return invalid vertex
    }
    ttf.push_back(vFactory->vertexTrack((i)->particleLinearizedTrackState(linPoint),state,1.));
+   if(std::isnan(ttf.back()->linearizedTrack()->predictedStateMomentumError()(0,0))){
+     return ReferenceCountingPointer<KinematicTree>(new KinematicTree()); // return invalid vertex
+   }
  }
 
 // //debugging code to check neutrals: 

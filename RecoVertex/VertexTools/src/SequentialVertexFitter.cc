@@ -281,14 +281,29 @@ SequentialVertexFitter<N>::fit(const std::vector<RefCountedVertexTrack> & tracks
     if(step != 0) globalVTracks = reLinearizeTracks(tracks, 
     					returnVertex.vertexState());
 
+    bool validTracks = true;
+
     // update sequentially the vertex estimate
     for (typename std::vector<RefCountedVertexTrack>::const_iterator i 
 	   = globalVTracks.begin(); i != globalVTracks.end(); i++) {
+
+      //Check if relinearized tracks have well-defined parameters
+      for(auto f : (*i)->linearizedTrack()->momentumJacobian()) validTracks &= !std::isnan(f);
+      for(auto f : (*i)->linearizedTrack()->constantTerm()) validTracks &= !std::isnan(f);
+      if(!validTracks) break;
+
       fVertex = theUpdator->add(fVertex,*i);
       if (!fVertex.isValid()) break;
     }
 
     validVertex = fVertex.isValid();
+
+    if (validVertex && !validTracks) {
+      LogDebug("RecoVertex/SequentialVertexFitter")
+	 << "Relinearized tracks have Nan in momentumJacobian or constantTerm.\n";
+      validVertex = false;
+    }
+
     // check tracker bounds and NaN in position
     if (validVertex && hasNan(fVertex.position())) {
       LogDebug("RecoVertex/SequentialVertexFitter") 
