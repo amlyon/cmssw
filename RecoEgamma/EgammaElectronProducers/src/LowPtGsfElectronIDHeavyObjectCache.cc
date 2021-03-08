@@ -1,4 +1,5 @@
 #include "CommonTools/MVAUtils/interface/GBRForestTools.h"
+#include "DataFormats/Common/interface/RefToPtr.h"
 #include "DataFormats/EgammaCandidates/interface/GsfElectron.h"
 #include "DataFormats/EgammaReco/interface/SuperCluster.h"
 #include "DataFormats/EgammaReco/interface/SuperClusterFwd.h"
@@ -38,17 +39,24 @@ namespace lowptgsfeleid {
       match_seed_dEta_,
       sc_E_,
       trk_p_,
+      unbiased_,
     };
     return output;
   }
   
   ////////////////////////////////////////////////////////////////////////////////
   //
-  void Features::set( const reco::GsfElectronRef& ele, double rho ) {
+  void Features::set( const reco::LowPtGsfElectronRef& ele, double rho, float unbiased ) {
+    set(edm::refToPtr(ele),rho,unbiased);
+  }
+
+  ////////////////////////////////////////////////////////////////////////////////
+  //
+  void Features::set( const reco::GsfElectronPtr& ele, double rho, float unbiased ) {
 
     // KF tracks
     if ( ele->core().isNonnull() ) {
-      reco::TrackRef trk = ele->core()->ctfTrack(); //@@ is this what we want?!
+      reco::TrackRef trk = ele->closestCtfTrackRef();
       if ( trk.isNonnull() ) {
 	trk_p_ = float(trk->p());
 	trk_nhits_ = float(trk->found());
@@ -100,6 +108,9 @@ namespace lowptgsfeleid {
       brem_frac_ = ele->fbrem();
       ele_pt_ = ele->pt();
     }
+
+    // Unbiased BDT from ElectronSeed
+    unbiased_ = unbiased;
     
   };
 
@@ -136,8 +147,19 @@ namespace lowptgsfeleid {
   ////////////////////////////////////////////////////////////////////////////////
   //
   double HeavyObjectCache::eval( const std::string& name,
-				 const reco::GsfElectronRef& ele,
-				 double rho ) const
+				 const reco::LowPtGsfElectronRef& ele,
+				 double rho,
+				 float unbiased ) const
+  {
+    return eval(name,edm::refToPtr(ele),rho,unbiased);
+  }
+
+  ////////////////////////////////////////////////////////////////////////////////
+  //
+  double HeavyObjectCache::eval( const std::string& name,
+				 const reco::GsfElectronPtr& ele,
+				 double rho,
+				 float unbiased ) const
   {
     std::vector<std::string>::const_iterator iter = std::find( names_.begin(), 
 							       names_.end(), 
@@ -145,7 +167,7 @@ namespace lowptgsfeleid {
     if ( iter != names_.end() ) {
       int index = std::distance(names_.begin(),iter);
       Features features;
-      features.set(ele,rho);
+      features.set(ele,rho,unbiased);
       std::vector<float> inputs = features.get();
       return models_.at(index)->GetResponse( inputs.data() );
     } else {

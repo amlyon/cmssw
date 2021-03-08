@@ -1,6 +1,7 @@
 #ifndef RecoEgamma_EgammaElectronProducers_LowPtGsfElectronIDHeavyObjectCache_h
 #define RecoEgamma_EgammaElectronProducers_LowPtGsfElectronIDHeavyObjectCache_h
 
+#include "DataFormats/Common/interface/ValueMap.h"
 #include "DataFormats/EgammaCandidates/interface/GsfElectronFwd.h"
 #include "CondFormats/EgammaObjects/interface/GBRForest.h"
 #include "FWCore/ParameterSet/interface/ParameterSet.h"
@@ -9,6 +10,8 @@
 namespace reco { 
   class BeamSpot;
   class PreId; 
+  typedef edm::Ptr<GsfElectron> GsfElectronPtr;
+  typedef edm::Ref< edm::View<GsfElectron> > LowPtGsfElectronRef;
 }
 
 namespace lowptgsfeleid {
@@ -43,10 +46,15 @@ namespace lowptgsfeleid {
     float rho_ = -1.;
     float brem_frac_ = -1.;
     float ele_pt_ = -1.;
+    // Unbiased BDT from ElectronSeed
+    float unbiased_ = -10.;
   public:
     std::vector<float> get();
-    void set( const reco::GsfElectronRef& ele, double rho );
+    void set( const reco::LowPtGsfElectronRef& ele, double rho, float unbiased = -10. );
+    void set( const reco::GsfElectronPtr& ele, double rho, float unbiased = -10. );
   };
+
+  //static getUnbiasedValue();
   
   class HeavyObjectCache {
 
@@ -56,7 +64,8 @@ namespace lowptgsfeleid {
 
     std::vector<std::string> modelNames() const { return names_; }
 
-    double eval( const std::string& name, const reco::GsfElectronRef&, double rho ) const;
+    double eval( const std::string& name, const reco::LowPtGsfElectronRef&, double rho, float unbiased = -10. ) const;
+    double eval( const std::string& name, const reco::GsfElectronPtr&, double rho, float unbiased = -10. ) const;
     
   private:
 

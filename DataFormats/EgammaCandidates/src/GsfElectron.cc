@@ -179,17 +179,22 @@ bool GsfElectron::ecalDriven() const
 void GsfElectron::setCorrectedEcalEnergyError( float energyError )
  { corrections_.correctedEcalEnergyError = energyError ; }
 
-void GsfElectron::setCorrectedEcalEnergy( float newEnergy )
+void GsfElectron::setCorrectedEcalEnergy( float newEnergy, bool setEovP )
  {
   math::XYZTLorentzVectorD momentum = p4() ;
   momentum *= newEnergy/momentum.e() ;
   setP4(momentum) ;
-  showerShape_.hcalDepth1OverEcal *= corrections_.correctedEcalEnergy/newEnergy ;
-  showerShape_.hcalDepth2OverEcal *= corrections_.correctedEcalEnergy/newEnergy ;
-  trackClusterMatching_.eSuperClusterOverP *= newEnergy/corrections_.correctedEcalEnergy ;
-  corrections_.correctedEcalEnergyError *= newEnergy/corrections_.correctedEcalEnergy ;
-  corrections_.correctedEcalEnergy = newEnergy ;
-  corrections_.isEcalEnergyCorrected = true ;
+  if(corrections_.correctedEcalEnergy>0 && setEovP ) {
+    showerShape_.hcalDepth1OverEcal *= corrections_.correctedEcalEnergy/newEnergy ;
+    showerShape_.hcalDepth2OverEcal *= corrections_.correctedEcalEnergy/newEnergy ;
+    trackClusterMatching_.eSuperClusterOverP *= newEnergy/corrections_.correctedEcalEnergy ;
+    corrections_.correctedEcalEnergyError *= newEnergy/corrections_.correctedEcalEnergy ;
+    corrections_.correctedEcalEnergy = newEnergy ;
+    corrections_.isEcalEnergyCorrected = true ;
+  } else {
+    corrections_.correctedEcalEnergy = newEnergy ;
+    corrections_.isEcalEnergyCorrected = true ;
+  }
  }
 
 void GsfElectron::setTrackMomentumError( float trackErr )
