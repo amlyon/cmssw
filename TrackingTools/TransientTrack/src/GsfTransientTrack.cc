@@ -5,6 +5,12 @@
 #include "TrackingTools/GsfTools/interface/MultiTrajectoryStateTransform.h"
 #include "TrackingTools/TrajectoryState/interface/TrajectoryStateTransform.h"
 #include "TrackingTools/PatternTools/interface/TSCBLBuilderNoMaterial.h"
+
+#include "TrackingTools/TrajectoryParametrization/interface/GlobalTrajectoryParameters.h"
+#include "TrackingTools/TrajectoryParametrization/interface/CurvilinearTrajectoryError.h"
+#include "DataFormats/TrajectoryState/interface/TrackCharge.h"
+#include "DataFormats/TrackReco/interface/TrackBase.h"
+
 #include <iostream>
 
 using namespace reco;
@@ -117,6 +123,83 @@ GsfTransientTrack::GsfTransientTrack( const GsfTrackRef & tk , const double time
 {
   
   initialFTS = trajectoryStateTransform::initialFreeState(*tk, field);
+}
+
+//from gsfMode
+GsfTransientTrack::GsfTransientTrack( const GsfTrackRef & tk , const MagneticField* field,
+				      const edm::ESHandle<GlobalTrackingGeometry>& tg, 
+				      const math::XYZVector& momVal, const int chVal):
+  GsfTrack(*tk),
+  tkr_(), hasTime(false), timeExt_(0.), dtErrorExt_(0.),
+  theField(field), initialTSOSAvailable(false),
+  initialTSCPAvailable(false), blStateAvailable(false), theTrackingGeometry(tg),
+  theTIPExtrapolator(AnalyticalPropagator(field, alongMomentum)){
+
+  Basic3DVector<float> pos (tk->referencePoint());
+  GlobalPoint gpos(pos);
+  Basic3DVector<float> mom (momVal);
+  GlobalVector gmom( mom);
+  TrackCharge tkCh(chVal);
+  GlobalTrajectoryParameters par( gpos, gmom, TrackCharge(tkCh), field);
+
+  //from RecoTracker/TrackProducer/src/GsfTrackProducerBase.cc
+  reco::GsfTrack::CovarianceMatrixMode covMode = tk->covarianceMode();
+  reco::TrackBase::CovarianceMatrix covMean = tk->covariance();
+
+  AlgebraicSymMatrix55 covErr;
+  for (unsigned int iv1 = 0; iv1 < 5; ++iv1) {
+    if(iv1 < reco::GsfTrack::dimensionMode) covErr(iv1, iv1) = covMode(iv1, iv1);
+    else covErr(iv1, iv1) = covMean(iv1, iv1);
+  }
+  for (unsigned int iv1 = 0; iv1 < 5; ++iv1) {
+    for (unsigned int iv2 = 0; iv2 < iv1; ++iv2) {
+      double cov12 = covMean(iv1, iv2) * sqrt(covErr(iv1, iv1) / covMean(iv1, iv1) *
+					      covErr(iv2, iv2) / covMean(iv2, iv2));
+      covErr(iv1, iv2) = covErr(iv2, iv1) = cov12;
+    }
+  }
+
+  CurvilinearTrajectoryError err(covErr);
+  initialFTS = FreeTrajectoryState( par, err);
+}
+
+//from regression
+GsfTransientTrack::GsfTransientTrack( const GsfTrackRef & tk , const MagneticField* field,
+				      const edm::ESHandle<GlobalTrackingGeometry>& tg,
+				      const math::XYZVector& momVal, const int chVal, const float regERatio):
+  GsfTrack(*tk),
+  tkr_(), hasTime(false), timeExt_(0.), dtErrorExt_(0.),
+  theField(field), initialTSOSAvailable(false),
+  initialTSCPAvailable(false), blStateAvailable(false), theTrackingGeometry(tg),
+  theTIPExtrapolator(AnalyticalPropagator(field, alongMomentum)){
+
+  Basic3DVector<float> pos (tk->referencePoint());
+  GlobalPoint gpos(pos);
+  Basic3DVector<float> mom (momVal);
+  GlobalVector gmom( mom);
+  TrackCharge tkCh(chVal);
+  GlobalTrajectoryParameters par( gpos, gmom, TrackCharge(tkCh), field);
+
+  //from RecoTracker/TrackProducer/src/GsfTrackProducerBase.cc
+  reco::GsfTrack::CovarianceMatrixMode covMode = tk->covarianceMode();
+  reco::TrackBase::CovarianceMatrix covMean = tk->covariance();
+
+  AlgebraicSymMatrix55 covErr;
+  for (unsigned int iv1 = 0; iv1 < 5; ++iv1) {
+    if(iv1 < reco::GsfTrack::dimensionMode) covErr(iv1, iv1) = covMode(iv1, iv1);
+    else covErr(iv1, iv1) = covMean(iv1, iv1);
+    if(iv1 == 0) covErr(iv1, iv1) = covErr(iv1, iv1) * regERatio * regERatio;
+  }
+  for (unsigned int iv1 = 0; iv1 < 5; ++iv1) {
+    for (unsigned int iv2 = 0; iv2 < iv1; ++iv2) {
+      double cov12 = covMean(iv1, iv2) * sqrt(covErr(iv1, iv1) / covMean(iv1, iv1) *
+					      covErr(iv2, iv2) / covMean(iv2, iv2));
+      covErr(iv1, iv2) = covErr(iv2, iv1) = cov12;
+    }
+  }
+
+  CurvilinearTrajectoryError err(covErr);
+  initialFTS = FreeTrajectoryState( par, err);
 }
 
 

@@ -4,6 +4,7 @@
 #include "TrackingTools/TransientTrack/interface/TransientTrack.h"
 #include "DataFormats/TrackReco/interface/TrackFwd.h"
 #include "DataFormats/GsfTrackReco/interface/GsfTrackFwd.h"
+#include "DataFormats/GsfTrackReco/interface/GsfTrack.h"
 #include "DataFormats/Candidate/interface/CandidateFwd.h"
 #include "DataFormats/Common/interface/ValueMap.h"
 
@@ -28,6 +29,9 @@ class TransientTrackBuilder {
     reco::TransientTrack build ( const reco::TrackRef & p)  const;
     reco::TransientTrack build ( const reco::GsfTrackRef * p)  const;
     reco::TransientTrack build ( const reco::GsfTrackRef & p)  const;
+
+    reco::TransientTrack buildfromGSF ( const reco::GsfTrackRef & p) const;
+    reco::TransientTrack buildfromReg ( const reco::GsfTrackRef & p, const math::XYZVector & regMomentum, const float & regERatio) const;
 
     reco::TransientTrack build ( const reco::CandidatePtr * p)  const;
     reco::TransientTrack build ( const reco::CandidatePtr & p)  const;
